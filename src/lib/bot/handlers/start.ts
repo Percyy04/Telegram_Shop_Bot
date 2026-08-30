@@ -1,6 +1,7 @@
 import { TelegramMessage } from '../types';
 import { sendMessage, buildReplyKeyboard } from '@/lib/telegram';
-import { MSG, MENU } from '@/lib/constants';
+import { MENU } from '@/lib/constants';
+import { handleCatalogMenu } from './catalog';
 
 export async function handleStartCommand(message: TelegramMessage) {
   const chatId = message.chat.id;
@@ -14,7 +15,10 @@ export async function handleStartCommand(message: TelegramMessage) {
 
   await sendMessage({
     chat_id: chatId,
-    text: `👋 Xin chào ${firstName}!\n\nChào mừng bạn đến với cửa hàng.\nHãy chọn sản phẩm bạn muốn mua ở menu bên dưới.`,
+    text: `👋 Xin chào ${firstName}!\n\nChào mừng bạn đến với cửa hàng.`,
     reply_markup: keyboard,
   });
+
+  // Automatically display inline category catalog
+  await handleCatalogMenu(chatId);
 }

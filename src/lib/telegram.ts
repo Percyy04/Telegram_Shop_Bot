@@ -101,7 +101,7 @@ export async function sendPhoto(params: SendPhotoParams) {
  */
 export function buildReplyKeyboard(buttons: string[][]): unknown {
   return {
-    keyboard: buttons,
+    keyboard: buttons.map((row) => row.map((text) => ({ text }))),
     resize_keyboard: true,
     is_persistent: true,
   };
