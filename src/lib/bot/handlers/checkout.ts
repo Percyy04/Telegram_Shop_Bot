@@ -13,24 +13,20 @@ import { getEnv } from '@/lib/config';
 import { MSG } from '@/lib/constants';
 
 /**
- * Handle checkout button click.
- * Invokes create_order_and_reserve_stock RPC atomically.
+ * Execute checkout process directly for a chat, user, product, and quantity.
  */
-export async function handleCheckout(
-  callback: TelegramCallbackQuery,
-  productId: string,
-  quantity: number = 1
-) {
-  const chatId = callback.message?.chat.id;
-  const messageId = callback.message?.message_id;
-  if (!chatId) return;
-
-  await answerCallbackQuery(callback.id, 'Đang tạo đơn hàng...');
+export async function processCheckoutDirect(params: {
+  chatId: number;
+  user: { id: number; username?: string; first_name?: string };
+  productId: string;
+  quantity: number;
+  messageId?: number;
+}) {
+  const { chatId, user, productId, quantity, messageId } = params;
 
   const env = getEnv();
   const supabase = getAdminSupabase();
 
-  const user = callback.from;
   const orderCode = generateOrderCode();
   const paymentRef = generatePaymentReference();
 
@@ -112,5 +108,28 @@ export async function handleCheckout(
     chat_id: chatId,
     photo: qrUrl,
     caption: paymentText,
+  });
+}
+
+/**
+ * Handle checkout button click.
+ */
+export async function handleCheckout(
+  callback: TelegramCallbackQuery,
+  productId: string,
+  quantity: number = 1
+) {
+  const chatId = callback.message?.chat.id;
+  const messageId = callback.message?.message_id;
+  if (!chatId) return;
+
+  await answerCallbackQuery(callback.id, 'Đang tạo đơn hàng...');
+
+  await processCheckoutDirect({
+    chatId,
+    user: callback.from,
+    productId,
+    quantity,
+    messageId,
   });
 }

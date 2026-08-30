@@ -3,6 +3,7 @@ import { sendMessage, sendPhoto, editMessageText, answerCallbackQuery, buildInli
 import { getAdminSupabase } from '@/lib/supabase/admin';
 import { formatVND, formatVNDShort } from '@/lib/format';
 import { MSG, CB } from '@/lib/constants';
+import { setUserLastProduct } from '../user-session';
 
 /**
  * Render category catalog menu.
@@ -170,10 +171,15 @@ export async function handleProductDetail(
     .eq('id', productId)
     .single();
 
+import { setUserLastProduct } from '../user-session';
+
   if (!product) {
     await answerCallbackQuery(callback.id, 'Sản phẩm không tồn tại.', true);
     return;
   }
+
+  // Store last viewed product for quantity text input (e.g. typing "10")
+  setUserLastProduct(chatId, product.id);
 
   // Check stock
   const { count: stockCount } = await supabase
@@ -204,6 +210,7 @@ export async function handleProductDetail(
       { text: '🛒 Mua 1', callback_data: `${CB.CHECKOUT}${product.id}:1` },
       { text: '🛒 Mua 2', callback_data: `${CB.CHECKOUT}${product.id}:2` },
       { text: '🛒 Mua 5', callback_data: `${CB.CHECKOUT}${product.id}:5` },
+      { text: '🛒 Mua 10', callback_data: `${CB.CHECKOUT}${product.id}:10` },
     ]);
   }
 
