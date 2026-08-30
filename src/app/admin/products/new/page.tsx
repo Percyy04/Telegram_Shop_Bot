@@ -146,7 +146,7 @@ export default function NewProductPage() {
             type="number"
             required
             min={0}
-            step={1000}
+            step={1}
             value={formData.salePrice}
             onChange={(e) => setFormData({ ...formData, salePrice: Number(e.target.value) })}
             className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
