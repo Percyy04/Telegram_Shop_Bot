@@ -3,6 +3,10 @@
  * Usage: npx tsx scripts/set-telegram-webhook.ts <WEBHOOK_URL>
  */
 
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env' });
+dotenv.config({ path: '.env.local' });
+
 import { getEnv } from '../src/lib/config';
 
 async function main() {
