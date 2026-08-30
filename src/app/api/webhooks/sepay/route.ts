@@ -13,6 +13,7 @@ import { getAdminSupabase } from '@/lib/supabase/admin';
 import { getEnv } from '@/lib/config';
 import { notifyAmountMismatch, notifyUnmatchedPayment } from '@/lib/admin-notify';
 import { attemptDelivery } from '@/lib/delivery';
+import { fuzzyNormalizeCode } from '@/lib/payment-code';
 
 export async function GET() {
   return NextResponse.json({ status: 'ok', message: 'SePay Webhook Endpoint' });
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
 
   // 7. Call RPC to dedupe and validate
   const supabase = getAdminSupabase();
-  const { data, error } = await supabase.rpc('record_sepay_transaction', {
+  let { data, error } = await supabase.rpc('record_sepay_transaction', {
     p_provider_transaction_id: String(transaction.id),
     p_payment_reference: paymentReference,
     p_transfer_amount: transaction.transferAmount,
@@ -90,12 +91,43 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, rpc_error: error.message }, { status: 500 });
   }
 
-  // 8. Handle result — send admin notifications for non-success states
-  const result = data as {
+  let result = data as {
     status?: string;
     expected?: number;
     received?: number;
+    order_id?: string;
+    order_code?: string;
   } | null;
+
+  // Fallback: If exact match failed (NO_MATCHING_ORDER), attempt fuzzy matching for visual character confusions (e.g., 5 vs S, 8 vs B, 2 vs Z)
+  if (result?.status === 'NO_MATCHING_ORDER' && paymentReference) {
+    const fuzzyRef = fuzzyNormalizeCode(paymentReference);
+    const { data: awaitingOrders } = await supabase
+      .from('orders')
+      .select('id, payment_reference')
+      .eq('status', 'AWAITING_PAYMENT');
+
+    const matchedOrder = awaitingOrders?.find(
+      (o) => o.payment_reference && fuzzyNormalizeCode(o.payment_reference) === fuzzyRef
+    );
+
+    if (matchedOrder) {
+      console.log('Fuzzy matched order:', matchedOrder.payment_reference, 'for input:', paymentReference);
+      const { data: retryData } = await supabase.rpc('record_sepay_transaction', {
+        p_provider_transaction_id: `${transaction.id}_fuzzy`,
+        p_payment_reference: matchedOrder.payment_reference,
+        p_transfer_amount: transaction.transferAmount,
+        p_transaction_content: transaction.content ?? '',
+        p_transfer_type: transaction.transferType,
+        p_gateway: transaction.gateway ?? null,
+        p_account_number: transaction.accountNumber,
+      });
+      if (retryData) {
+        data = retryData;
+        result = retryData as typeof result;
+      }
+    }
+  }
 
   const status = result?.status;
 

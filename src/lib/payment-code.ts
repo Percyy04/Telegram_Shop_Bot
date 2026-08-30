@@ -8,7 +8,7 @@ import crypto from 'crypto';
  * Excludes: 0, O, 1, I, L (ambiguous characters)
  */
 
-const PAYMENT_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+const PAYMENT_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 const REFERENCE_LENGTH = 6;
 const PREFIX = 'TG-';
 
@@ -75,4 +75,19 @@ export function normalizePaymentReference(
 ): string | null {
   if (!code) return null;
   return extractPaymentReference(code.trim());
+}
+
+/**
+ * Normalize payment reference by replacing visually ambiguous/confusing characters.
+ * E.g., 5 ↔ S, 8 ↔ B, 2 ↔ Z, 6 ↔ G to prevent mistyping errors from blocking payment.
+ */
+export function fuzzyNormalizeCode(code: string): string {
+  if (!code) return '';
+  const upper = code.toUpperCase().trim();
+  const clean = upper.replace(/^TG-?/i, '');
+  return clean
+    .replace(/5/g, 'S')
+    .replace(/8/g, 'B')
+    .replace(/2/g, 'Z')
+    .replace(/6/g, 'G');
 }
