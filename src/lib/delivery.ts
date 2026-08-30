@@ -92,20 +92,41 @@ export async function attemptDelivery(
       warrantyText = product?.warranty_text ?? null;
     }
 
-    // 4. Decrypt and send each stock unit via Telegram
-    const messageIds: number[] = [];
-
-    for (const unit of stockUnits) {
+    // 4. Decrypt all stock units and combine into 1 Telegram message
+    const decryptedPayloads = stockUnits.map((unit, index) => {
       const decrypted = decryptPayload(
         unit.delivery_payload_encrypted,
         env.INVENTORY_ENCRYPTION_KEY
       );
+      return stockUnits.length > 1 ? `${index + 1}. ${decrypted}` : decrypted;
+    });
 
+    const combinedPayload = decryptedPayloads.join('\n');
+    const messageIds: number[] = [];
+
+    // Chunk message if combined payload exceeds Telegram 4000 character limit
+    const MAX_CHUNK_LENGTH = 3500;
+    let currentChunk = '';
+    const payloadChunks: string[] = [];
+
+    for (const item of decryptedPayloads) {
+      if ((currentChunk + '\n' + item).length > MAX_CHUNK_LENGTH) {
+        payloadChunks.push(currentChunk);
+        currentChunk = item;
+      } else {
+        currentChunk = currentChunk ? `${currentChunk}\n${item}` : item;
+      }
+    }
+    if (currentChunk) {
+      payloadChunks.push(currentChunk);
+    }
+
+    for (const chunk of payloadChunks) {
       const result = await sendMessage({
         chat_id: telegram_chat_id,
         text: MSG.DELIVERY_SUCCESS({
           orderCode: order?.code ?? 'N/A',
-          payload: decrypted,
+          payload: chunk,
           warrantyText,
         }),
       });
