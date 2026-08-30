@@ -86,7 +86,7 @@ export async function POST(request: Request) {
 
   if (error) {
     console.error('SePay RPC failed:', error);
-    return NextResponse.json({ success: false }, { status: 500 });
+    return NextResponse.json({ success: false, rpc_error: error.message }, { status: 500 });
   }
 
   // 8. Handle result — send admin notifications for non-success states
