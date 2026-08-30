@@ -2,6 +2,38 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { getAdminSupabase } from '@/lib/supabase/admin';
 
+export async function GET() {
+  await requireAdmin();
+  const supabase = getAdminSupabase();
+
+  const { data: products, error } = await supabase
+    .from('products')
+    .select('*, categories(id, name)')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Get available stock count for each product
+  const productsWithStock = await Promise.all(
+    (products || []).map(async (prod) => {
+      const { count } = await supabase
+        .from('stock_units')
+        .select('*', { count: 'exact', head: true })
+        .eq('product_id', prod.id)
+        .eq('status', 'AVAILABLE');
+
+      return {
+        ...prod,
+        available_stock: count || 0,
+      };
+    })
+  );
+
+  return NextResponse.json({ products: productsWithStock });
+}
+
 export async function POST(request: Request) {
   const admin = await requireAdmin();
   const body = await request.json();

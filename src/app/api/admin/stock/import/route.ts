@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/auth';
 import { getAdminSupabase } from '@/lib/supabase/admin';
 import { encryptPayload } from '@/lib/crypto';
 import { getEnv } from '@/lib/config';
+import { sendStockRestockNotification } from '@/lib/stock-notify';
 
 export async function POST(request: Request) {
   // 1. Require admin auth
@@ -86,9 +87,24 @@ export async function POST(request: Request) {
     },
   });
 
+  // 7. Optional broadcast notification to Telegram
+  let broadcastSent = false;
+  if (body.broadcastNotify) {
+    try {
+      await sendStockRestockNotification({
+        productIdOrSku: productId,
+        addedCount: lines.length,
+      });
+      broadcastSent = true;
+    } catch (err) {
+      console.error('Failed to broadcast restock notification:', err);
+    }
+  }
+
   return NextResponse.json({
     success: true,
     importedCount: lines.length,
     productName: product.name,
+    broadcastSent,
   });
 }
