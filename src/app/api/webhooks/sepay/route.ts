@@ -13,6 +13,10 @@ import { getAdminSupabase } from '@/lib/supabase/admin';
 import { getEnv } from '@/lib/config';
 import { notifyAmountMismatch, notifyUnmatchedPayment } from '@/lib/admin-notify';
 
+export async function GET() {
+  return NextResponse.json({ status: 'ok', message: 'SePay Webhook Endpoint' });
+}
+
 export async function POST(request: Request) {
   const env = getEnv();
 
