@@ -6,6 +6,7 @@ import {
   handleProductDetail,
 } from './handlers/catalog';
 import { handleCheckout } from './handlers/checkout';
+import { handleOrdersCommand, handleOrderDetail } from './handlers/orders';
 import { parseCallbackData, CB } from '@/lib/constants';
 import { answerCallbackQuery } from '@/lib/telegram';
 
@@ -61,6 +62,16 @@ export async function routeTelegramUpdate(update: TelegramUpdate) {
         if (params[0]) {
           const qty = params[1] ? parseInt(params[1], 10) : 1;
           await handleCheckout(callback, params[0], qty);
+        }
+        break;
+
+      case 'orders':
+        await handleOrdersCommand(callback, parseInt(params[0] || '1', 10));
+        break;
+
+      case 'order':
+        if (params[0]) {
+          await handleOrderDetail(callback, params[0]);
         }
         break;
 
