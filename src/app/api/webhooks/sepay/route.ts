@@ -22,9 +22,10 @@ export async function POST(request: Request) {
   try {
     env = getEnv();
   } catch (err) {
-    console.error('SePay webhook: Environment error:', err);
+    const details = err instanceof Error ? err.message : String(err);
+    console.error('SePay webhook: Environment error:', details);
     return NextResponse.json(
-      { error: 'Server environment not configured' },
+      { error: 'Server environment not configured', details },
       { status: 500 }
     );
   }
