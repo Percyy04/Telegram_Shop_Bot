@@ -1,4 +1,4 @@
-# 🤖 Telegram Shop Bot (SePay Webhook Auto-Payment & Atomic Delivery)
+# 🤖 Telegram Shop Bot (SePay Webhook Auto-Payment & Atomic Delivery)))
 
 Hệ thống bán hàng tự động qua Telegram Bot, tự động xác nhận thanh toán chuyển khoản ngân hàng qua **SePay Webhook** và tự động giao hàng mã hóa (tài khoản, key, giftcode, v.v.) không cần Admin duyệt.
 
