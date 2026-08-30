@@ -111,8 +111,8 @@ export const MSG = {
 
   NO_ORDERS: '📦 Bạn chưa có đơn hàng nào.',
 
-  SUPPORT: (contact: string) =>
-    `💬 Hỗ trợ\n\nNếu cần hỗ trợ, vui lòng liên hệ: ${contact}`,
+  SUPPORT: (contact: string = '@percy004') =>
+    `📞 Hỗ trợ nhanh:\n\n✈️ Telegram: ${contact}\n\nLiên hệ để được trợ giúp và xử lý sự cố nhanh nhất.`,
 
   ORDER_EXPIRED_NOTICE: '❌ Đơn hàng này đã hết hạn thanh toán.',
 

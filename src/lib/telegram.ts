@@ -126,9 +126,10 @@ export async function setMyCommands() {
     commands: [
       { command: 'start', description: 'Bắt đầu và xem menu' },
       { command: 'menu', description: 'Mở menu chính' },
-      { command: 'products', description: 'Xem sản phẩm' },
+      { command: 'products', description: 'Xem danh sách sản phẩm' },
       { command: 'orders', description: 'Lịch sử đơn hàng' },
-      { command: 'support', description: 'Liên hệ hỗ trợ' },
+      { command: 'support', description: 'Hỗ trợ nhanh @percy004' },
+      { command: 'warranty', description: 'Yêu cầu bảo hành' },
     ],
   });
 }
