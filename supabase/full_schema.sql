@@ -6,23 +6,15 @@
 -- -----------------------------------------------
 -- 0. CLEANUP (Safely re-runnable)
 -- -----------------------------------------------
-DROP TRIGGER IF EXISTS update_categories_updated_at ON public.categories;
-DROP TRIGGER IF EXISTS update_products_updated_at ON public.products;
-DROP TRIGGER IF EXISTS update_orders_updated_at ON public.orders;
-DROP TRIGGER IF EXISTS update_stock_units_updated_at ON public.stock_units;
-DROP TRIGGER IF EXISTS update_payments_updated_at ON public.payments;
-DROP TRIGGER IF EXISTS update_delivery_attempts_updated_at ON public.delivery_attempts;
-DROP TRIGGER IF EXISTS update_warranty_requests_updated_at ON public.warranty_requests;
-
-DROP FUNCTION IF EXISTS public.create_order_and_reserve_stock;
-DROP FUNCTION IF EXISTS public.record_sepay_transaction;
-DROP FUNCTION IF EXISTS public.confirm_payment_manual;
-DROP FUNCTION IF EXISTS public.claim_delivery_attempt;
-DROP FUNCTION IF EXISTS public.mark_order_delivered;
-DROP FUNCTION IF EXISTS public.mark_delivery_failed;
-DROP FUNCTION IF EXISTS public.mark_delivery_uncertain;
-DROP FUNCTION IF EXISTS public.release_expired_orders;
-DROP FUNCTION IF EXISTS public.update_updated_at_column;
+DROP FUNCTION IF EXISTS public.create_order_and_reserve_stock CASCADE;
+DROP FUNCTION IF EXISTS public.record_sepay_transaction CASCADE;
+DROP FUNCTION IF EXISTS public.confirm_payment_manual CASCADE;
+DROP FUNCTION IF EXISTS public.claim_delivery_attempt CASCADE;
+DROP FUNCTION IF EXISTS public.mark_order_delivered CASCADE;
+DROP FUNCTION IF EXISTS public.mark_delivery_failed CASCADE;
+DROP FUNCTION IF EXISTS public.mark_delivery_uncertain CASCADE;
+DROP FUNCTION IF EXISTS public.release_expired_orders CASCADE;
+DROP FUNCTION IF EXISTS public.update_updated_at_column CASCADE;
 
 DROP TABLE IF EXISTS public.audit_logs CASCADE;
 DROP TABLE IF EXISTS public.warranty_requests CASCADE;
