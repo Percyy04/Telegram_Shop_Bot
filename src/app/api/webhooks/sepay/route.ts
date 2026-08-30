@@ -18,7 +18,16 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const env = getEnv();
+  let env;
+  try {
+    env = getEnv();
+  } catch (err) {
+    console.error('SePay webhook: Environment error:', err);
+    return NextResponse.json(
+      { error: 'Server environment not configured' },
+      { status: 500 }
+    );
+  }
 
   // 1. Read raw body BEFORE parsing
   const rawBody = await request.text();
