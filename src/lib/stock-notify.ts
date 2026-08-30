@@ -57,7 +57,7 @@ export async function sendStockRestockNotification(params: RestockNotifyParams) 
     [
       {
         text: '🛒 Mua ngay',
-        callback_data: `${CB.PRODUCT_DETAIL}${product.id}`,
+        callback_data: `${CB.PRODUCT}${product.id}`,
       },
     ],
   ]);

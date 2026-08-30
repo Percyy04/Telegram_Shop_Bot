@@ -87,9 +87,11 @@ export async function POST(request: Request) {
     },
   });
 
-  // 7. Optional broadcast notification to Telegram
+  // 7. Broadcast notification to Telegram (defaults to true)
   let broadcastSent = false;
-  if (body.broadcastNotify) {
+  const shouldNotify = body.broadcastNotify !== undefined ? Boolean(body.broadcastNotify) : true;
+
+  if (shouldNotify) {
     try {
       await sendStockRestockNotification({
         productIdOrSku: productId,

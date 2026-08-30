@@ -16,6 +16,7 @@ export default function AdminStockPage() {
   const [selectedProductId, setSelectedProductId] = useState('');
   const [stockLines, setStockLines] = useState('');
   const [importNote, setImportNote] = useState('');
+  const [broadcastNotify, setBroadcastNotify] = useState(true);
   const [loading, setLoading] = useState(false);
   const [fetchingProducts, setFetchingProducts] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -63,6 +64,7 @@ export default function AdminStockPage() {
           productId: selectedProductId,
           stockLines,
           importNote,
+          broadcastNotify,
         }),
       });
 
@@ -71,9 +73,10 @@ export default function AdminStockPage() {
       if (!res.ok) {
         setMessage({ type: 'error', text: data.error || 'Nhập kho thất bại.' });
       } else {
+        const notiMsg = data.broadcastSent ? ' (Đã bắn thông báo Telegram)' : '';
         setMessage({
           type: 'success',
-          text: `✅ Đã mã hóa AES-256-GCM và nhập thành công ${data.importedCount} hàng cho sản phẩm "${data.productName}"!`,
+          text: `✅ Đã mã hóa AES-256-GCM và nhập thành công ${data.importedCount} hàng cho sản phẩm "${data.productName}"!${notiMsg}`,
         });
         setStockLines('');
         setImportNote('');
@@ -176,6 +179,20 @@ export default function AdminStockPage() {
             placeholder="VD: Đợt hàng nhập ngày 30/08 từ đại lý A"
             className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
           />
+        </div>
+
+        {/* Telegram Broadcast Checkbox */}
+        <div className="flex items-center gap-2 pt-1">
+          <input
+            type="checkbox"
+            id="broadcastNotify"
+            checked={broadcastNotify}
+            onChange={(e) => setBroadcastNotify(e.target.checked)}
+            className="w-4 h-4 rounded bg-slate-950 border-slate-800 text-purple-600 focus:ring-purple-500/50"
+          />
+          <label htmlFor="broadcastNotify" className="text-sm font-medium text-purple-300 cursor-pointer">
+            Gửi tin nhắn thông báo thêm hàng (Restock) lên Telegram
+          </label>
         </div>
 
         {/* Submit Button */}
