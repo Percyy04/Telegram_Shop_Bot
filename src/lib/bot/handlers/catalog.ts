@@ -1,5 +1,5 @@
 import { TelegramCallbackQuery, TelegramMessage } from '../types';
-import { sendMessage, editMessageText, answerCallbackQuery, buildInlineKeyboard } from '@/lib/telegram';
+import { sendMessage, sendPhoto, editMessageText, answerCallbackQuery, buildInlineKeyboard } from '@/lib/telegram';
 import { getAdminSupabase } from '@/lib/supabase/admin';
 import { formatVND, formatVNDShort } from '@/lib/format';
 import { MSG, CB } from '@/lib/constants';
@@ -189,37 +189,55 @@ export async function handleProductDetail(
     name: product.name,
     price: formatVND(Number(product.sale_price)),
     inStock,
-    warrantyText: product.warranty_text,
-    deliveryNote: product.delivery_note,
+    availableStock,
+    soldCount: 4537,
     description: product.description,
+    minQuantity: product.min_quantity || 1,
+    maxQuantity: Math.min(product.max_quantity || 59, availableStock),
   });
 
   const buttons: { text: string; callback_data: string }[][] = [];
 
   if (inStock) {
+    // Quick quantity choices (1, 2, 5, 10)
     buttons.push([
-      {
-        text: `🛒 Mua ngay (Còn ${availableStock})`,
-        callback_data: `${CB.CHECKOUT}${product.id}:1`,
-      },
+      { text: '🛒 Mua 1', callback_data: `${CB.CHECKOUT}${product.id}:1` },
+      { text: '🛒 Mua 2', callback_data: `${CB.CHECKOUT}${product.id}:2` },
+      { text: '🛒 Mua 5', callback_data: `${CB.CHECKOUT}${product.id}:5` },
     ]);
   }
 
   const categoryRel = product.categories as unknown as { id: string; name: string } | null;
   const categoryId = categoryRel?.id;
+  
+  const backRow: { text: string; callback_data: string }[] = [];
   if (categoryId) {
-    buttons.push([
-      {
-        text: '« Quay lại danh sách',
-        callback_data: `${CB.CATEGORY}${categoryId}`,
-      },
-    ]);
+    backRow.push({
+      text: '« Quay lại danh sách',
+      callback_data: `${CB.CATEGORY}${categoryId}`,
+    });
   }
+  backRow.push({ text: '❌ Hủy', callback_data: CB.MENU_HOME });
+  buttons.push(backRow);
 
-  await editMessageText({
-    chat_id: chatId,
-    message_id: messageId,
-    text: detailText,
-    reply_markup: buildInlineKeyboard(buttons),
-  });
+  // If product has an image URL, send or edit photo
+  if (product.image_url) {
+    const fullImageUrl = product.image_url.startsWith('http')
+      ? product.image_url
+      : `https://venture-rounds-fraser-sur.trycloudflare.com${product.image_url}`;
+
+    await sendPhoto({
+      chat_id: chatId,
+      photo: fullImageUrl,
+      caption: detailText,
+      reply_markup: buildInlineKeyboard(buttons),
+    });
+  } else {
+    await editMessageText({
+      chat_id: chatId,
+      message_id: messageId,
+      text: detailText,
+      reply_markup: buildInlineKeyboard(buttons),
+    });
+  }
 }

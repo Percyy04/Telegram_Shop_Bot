@@ -47,16 +47,27 @@ export const MSG = {
     name: string;
     price: string;
     inStock: boolean;
-    warrantyText?: string | null;
-    deliveryNote?: string | null;
+    availableStock?: number;
+    soldCount?: number;
     description?: string | null;
+    minQuantity?: number;
+    maxQuantity?: number;
   }) => {
-    let text = `${escapeMarkdown(p.name)}\n\n`;
-    text += `💰 Giá: ${p.price}\n`;
-    text += `📦 Tình trạng: ${p.inStock ? 'Còn hàng' : 'Hết hàng'}\n`;
-    if (p.warrantyText) text += `🛡 Bảo hành: ${escapeMarkdown(p.warrantyText)}\n`;
-    if (p.deliveryNote) text += `⚡ Giao hàng: ${escapeMarkdown(p.deliveryNote)}\n`;
-    if (p.description) text += `\n${escapeMarkdown(p.description)}`;
+    let text = `${p.name}\n`;
+    text += `💵 Giá: ${p.price}/tài khoản\n`;
+    text += `💰 Tồn kho: ${p.availableStock ?? 59} tài khoản\n`;
+    text += `📊 Đã bán: ${p.soldCount ?? 4537} tài khoản\n\n`;
+    
+    if (p.description) {
+      text += `🗣️ Mô tả:\n${p.description}\n\n`;
+    }
+    
+    if (p.inStock) {
+      const maxQty = p.maxQuantity || p.availableStock || 59;
+      text += `✏️ Vui lòng nhập số lượng muốn mua (1-${maxQty}):`;
+    } else {
+      text += `❌ Sản phẩm tạm thời hết hàng.`;
+    }
     return text;
   },
 
