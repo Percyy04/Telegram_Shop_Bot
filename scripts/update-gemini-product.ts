@@ -25,7 +25,7 @@ async function updateGeminiProduct() {
     sale_price: 13000,
     sku: 'SKU-GEMINI-18M',
     description:
-      '• Link nhận gói Gemini AI Pro hạn 18 tháng.\n• Không cần thêm thẻ, không cần sử dụng vpn.\n• Mua về chỉ cần login gmail -> dán link -> kích hoạt gói.\n• Bảo hành 12 giờ mua về sử dụng liền không bảo hành những trường hợp ngâm link quá 12h kể từ lúc mua.\n• Hướng dẫn sử dụng: https://t.me/taphoagiare_update/99',
+      '• Link nhận gói Gemini AI Pro hạn 18 tháng.\n• Không cần thêm thẻ, không cần sử dụng vpn.\n• Mua về chỉ cần login gmail -> dán link -> kích hoạt gói.\n• Bảo hành 12 giờ mua về sử dụng liền không bảo hành những trường hợp ngâm link quá 12h kể từ lúc mua.',
     warranty_text: 'Bảo hành 12 giờ mua về sử dụng liền không bảo hành những trường hợp ngâm link quá 12h kể từ lúc mua.',
     delivery_note: 'Dán link -> kích hoạt gói',
     image_url: '/images/gemini-pro-banner.png',
