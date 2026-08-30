@@ -12,6 +12,7 @@ import type { SepayTransaction } from '@/lib/payment-matcher';
 import { getAdminSupabase } from '@/lib/supabase/admin';
 import { getEnv } from '@/lib/config';
 import { notifyAmountMismatch, notifyUnmatchedPayment } from '@/lib/admin-notify';
+import { attemptDelivery } from '@/lib/delivery';
 
 export async function GET() {
   return NextResponse.json({ status: 'ok', message: 'SePay Webhook Endpoint' });
@@ -111,9 +112,14 @@ export async function POST(request: Request) {
     );
   }
 
-  // 9. For READY_FOR_DELIVERY: delivery attempt stays PENDING
-  //    The delivery worker cron will pick it up
-  //    DO NOT attempt delivery inline — return 200 fast
+  // 9. For READY_FOR_DELIVERY: trigger instant delivery inline (with fallback to cron worker)
+  if (status === 'READY_FOR_DELIVERY' && result && 'order_id' in result && typeof result.order_id === 'string') {
+    try {
+      await attemptDelivery(result.order_id);
+    } catch (deliveryErr) {
+      console.error('Inline delivery attempt failed, cron worker will retry:', deliveryErr);
+    }
+  }
 
   // 10. Always return success for validly authenticated webhooks
   return NextResponse.json({ success: true });

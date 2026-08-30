@@ -13,12 +13,12 @@ const REFERENCE_LENGTH = 6;
 const PREFIX = 'TG-';
 
 /**
- * Strict regex for extracting payment reference from bank transfer content.
- * Matches exactly TG- followed by 6 characters from the unambiguous alphabet.
- * Word boundary ensures no partial matches.
+ * Regex for extracting payment reference from bank transfer content.
+ * Matches TG- or TG followed by 6 characters from the unambiguous alphabet.
+ * Optional hyphen allows matching bank transfers where hyphens were stripped by apps/VietQR.
  */
 export const PAYMENT_REFERENCE_REGEX =
-  /\bTG-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}\b/i;
+  /\bTG-?([23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6})\b/i;
 
 /**
  * Generate a unique payment reference.
@@ -43,34 +43,36 @@ export function generateOrderCode(): string {
 }
 
 /**
- * Extract payment reference from bank transfer content using strict regex.
- *
- * Prioritize SePay-parsed `code` field if it matches, then fallback to regex on `content`.
+ * Extract payment reference from bank transfer content using regex.
+ * Supports both "TG-XXXXXX" and "TGXXXXXX" (missing hyphen).
+ * Always returns standardized "TG-XXXXXX" format in uppercase.
  *
  * Accepted:
  *   "TG-8KZ2XM" → "TG-8KZ2XM"
+ *   "TG8KZ2XM" → "TG-8KZ2XM"
  *   "Thanh toan TG-8KZ2XM" → "TG-8KZ2XM"
- *   "TG-8KZ2XM mua hang" → "TG-8KZ2XM"
+ *   "144453548511 0783881764 TGQDAVPR" → "TG-QDAVPR"
+ *   "TG27SPT8" → "TG-27SPT8"
  *
  * Rejected:
- *   "TG8KZ2XM" → null (missing dash)
  *   "TG-8KZ2X" → null (only 5 chars)
- *   "TG-8KZ2XM-TEST" → null (extra suffix — will match TG-8KZ2XM part actually)
  *   "Mua hang" → null (no reference)
  */
 export function extractPaymentReference(content: string): string | null {
   const match = content.match(PAYMENT_REFERENCE_REGEX);
-  return match ? match[0].toUpperCase() : null;
+  if (!match) return null;
+  // If match[1] is captured (group 1), construct standard TG-XXXXXX format
+  const codePart = match[1] ? match[1] : match[0].replace(/^TG-?/i, '');
+  return `TG-${codePart.toUpperCase()}`;
 }
 
 /**
  * Normalize a SePay-parsed code field.
- * Returns the code in uppercase if it matches the expected format, null otherwise.
+ * Returns the code in standard "TG-XXXXXX" uppercase format if valid, null otherwise.
  */
 export function normalizePaymentReference(
   code: string | null | undefined
 ): string | null {
   if (!code) return null;
-  const upper = code.toUpperCase().trim();
-  return PAYMENT_REFERENCE_REGEX.test(upper) ? upper : null;
+  return extractPaymentReference(code.trim());
 }

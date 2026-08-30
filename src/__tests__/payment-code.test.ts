@@ -16,17 +16,19 @@ describe('Payment Code Generator & Parser', () => {
     expect(code).not.toMatch(/[01IOL]/i);
   });
 
-  it('should extract strict payment reference from transfer content', () => {
+  it('should extract payment reference from transfer content (with or without dash)', () => {
     expect(extractPaymentReference('TG-8KZ2XM')).toBe('TG-8KZ2XM');
+    expect(extractPaymentReference('TG8KZ2XM')).toBe('TG-8KZ2XM');
     expect(extractPaymentReference('Thanh toan TG-8KZ2XM')).toBe('TG-8KZ2XM');
-    expect(extractPaymentReference('TG-8KZ2XM mua hàng ngay')).toBe('TG-8KZ2XM');
+    expect(extractPaymentReference('144453548511 0783881764 TGQDAVPR')).toBe('TG-QDAVPR');
+    expect(extractPaymentReference('TG27SPT8')).toBe('TG-27SPT8');
     expect(extractPaymentReference('No reference here')).toBeNull();
-    expect(extractPaymentReference('TG8KZ2XM')).toBeNull(); // Missing dash
     expect(extractPaymentReference('TG-8KZ2X')).toBeNull(); // 5 chars
   });
 
   it('should normalize payment reference', () => {
     expect(normalizePaymentReference('tg-8kz2xm')).toBe('TG-8KZ2XM');
+    expect(normalizePaymentReference('tg8kz2xm')).toBe('TG-8KZ2XM');
     expect(normalizePaymentReference('invalid')).toBeNull();
   });
 });

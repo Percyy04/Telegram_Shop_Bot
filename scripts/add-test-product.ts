@@ -70,9 +70,9 @@ async function main() {
       .insert({
         category_id: category!.id,
         sku: 'SKU-TEST-1K',
-        name: 'Sản phẩm Test 1.000đ',
-        description: 'Sản phẩm test hệ thống tự động xác nhận thanh toán & trả hàng (Giá: 1.000 VNĐ).',
-        sale_price: 1000,
+        name: 'Sản phẩm Test 2.000đ',
+        description: 'Sản phẩm test hệ thống tự động xác nhận thanh toán & trả hàng (Giá: 2.000 VNĐ).',
+        sale_price: 2000,
         warranty_text: 'Hỗ trợ test hệ thống 24/7',
         delivery_note: 'Giao mã test ngay lập tức sau khi chuyển khoản',
         min_quantity: 1,
@@ -88,9 +88,9 @@ async function main() {
       process.exit(1);
     }
     product = newProd;
-    console.log('✅ Created Product: Sản phẩm Test 1.000đ 📦');
+    console.log('✅ Created Product: Sản phẩm Test 2.000đ 📦');
   } else {
-    console.log('ℹ️ Product Sản phẩm Test 1.000đ already exists.');
+    console.log('ℹ️ Product Sản phẩm Test 2.000đ already exists.');
   }
 
   // 3. Encrypt and add stock units
@@ -114,7 +114,7 @@ async function main() {
   }
 
   console.log(`✅ Successfully added ${addedCount} stock units for Test product!`);
-  console.log('🎉 ALL DONE! Test Category & 1,000đ Product are ready in Telegram Shop Bot.');
+  console.log('🎉 ALL DONE! Test Category & 2,000đ Product are ready in Telegram Shop Bot.');
 }
 
 main().catch(console.error);
