@@ -14,8 +14,7 @@ export async function handleStartCommand(message: TelegramMessage) {
 
   await sendMessage({
     chat_id: chatId,
-    text: MSG.GREETING(firstName),
-    parse_mode: 'MarkdownV2',
+    text: `👋 Xin chào ${firstName}!\n\nChào mừng bạn đến với cửa hàng.\nHãy chọn sản phẩm bạn muốn mua ở menu bên dưới.`,
     reply_markup: keyboard,
   });
 }

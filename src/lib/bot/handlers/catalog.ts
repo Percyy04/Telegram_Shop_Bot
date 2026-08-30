@@ -220,7 +220,6 @@ export async function handleProductDetail(
     chat_id: chatId,
     message_id: messageId,
     text: detailText,
-    parse_mode: 'MarkdownV2',
     reply_markup: buildInlineKeyboard(buttons),
   });
 }
