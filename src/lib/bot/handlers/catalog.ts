@@ -171,8 +171,6 @@ export async function handleProductDetail(
     .eq('id', productId)
     .single();
 
-import { setUserLastProduct } from '../user-session';
-
   if (!product) {
     await answerCallbackQuery(callback.id, 'Sản phẩm không tồn tại.', true);
     return;
