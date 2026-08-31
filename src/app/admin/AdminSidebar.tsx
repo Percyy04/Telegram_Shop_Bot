@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
+  FolderTree,
   Package,
   Boxes,
   ShoppingCart,
@@ -26,6 +27,7 @@ export default function AdminSidebar({ adminEmail, adminName }: AdminSidebarProp
 
   const navItems = [
     { href: '/admin', label: 'Tổng quan', icon: LayoutDashboard, color: 'text-emerald-600' },
+    { href: '/admin/categories', label: 'Danh mục', icon: FolderTree, color: 'text-indigo-600' },
     { href: '/admin/products', label: 'Sản phẩm', icon: Package, color: 'text-blue-600' },
     { href: '/admin/stock', label: 'Nhập kho (Stock)', icon: Boxes, color: 'text-purple-600' },
     { href: '/admin/orders', label: 'Đơn hàng', icon: ShoppingCart, color: 'text-amber-600' },
