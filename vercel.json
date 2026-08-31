@@ -1,12 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/process-pending-deliveries",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/release-expired-orders",
-      "schedule": "0 1 * * *"
-    }
-  ]
-}
+{}
