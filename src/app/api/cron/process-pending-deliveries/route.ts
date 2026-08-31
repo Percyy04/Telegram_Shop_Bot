@@ -25,11 +25,12 @@ export async function GET(request: Request) {
 
   const supabase = getAdminSupabase();
 
-  // Fetch pending delivery attempts (bounded batch)
+  // Fetch pending delivery attempts (bounded batch, max 3 attempts)
   const { data: pendingAttempts, error } = await supabase
     .from('delivery_attempts')
     .select('order_id')
     .in('status', ['PENDING', 'FAILED'])
+    .lt('attempt_count', 3)
     .order('created_at', { ascending: true })
     .limit(BATCH_SIZE);
 
