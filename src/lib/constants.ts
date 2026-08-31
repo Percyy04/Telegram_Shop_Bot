@@ -53,18 +53,34 @@ export const MSG = {
     minQuantity?: number;
     maxQuantity?: number;
   }) => {
-    let text = `${p.name}\n`;
-    text += `💵 Giá: ${p.price}/tài khoản\n`;
-    text += `💰 Tồn kho: ${p.availableStock ?? 59} tài khoản\n`;
-    text += `📊 Đã bán: ${p.soldCount ?? 4537} tài khoản\n\n`;
-    
-    if (p.description) {
-      text += `🗣️ Mô tả:\n${p.description}\n\n`;
+    const escapeHtml = (str: string) =>
+      str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    let text = `1️⃣ <b>${escapeHtml(p.name)}</b>\n`;
+    text += `💵 <b>Giá:</b> ${escapeHtml(p.price)}\n`;
+    text += `➕ <b>Tồn kho:</b> ${p.availableStock ?? 0} tài khoản\n`;
+    text += `📊 <b>Đã bán:</b> ${(p.soldCount ?? 4692).toLocaleString('vi-VN')} tài khoản\n\n`;
+
+    if (p.description && p.description.trim()) {
+      const descLines = p.description
+        .trim()
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .map((l) => {
+          if (l.startsWith('•') || l.startsWith('-') || l.startsWith('*')) {
+            return escapeHtml(l);
+          }
+          return `• ${escapeHtml(l)}`;
+        })
+        .join('\n');
+
+      text += `<blockquote>🗣️ <b>Mô tả:</b>\n${descLines}</blockquote>\n\n`;
     }
-    
+
     if (p.inStock) {
       const maxQty = p.maxQuantity || p.availableStock || 59;
-      text += `✏️ Vui lòng nhập số lượng muốn mua (1-${maxQty}):`;
+      text += `✏️ Vui lòng chọn số lượng hoặc nhập số lượng muốn mua (1-${maxQty}):`;
     } else {
       text += `❌ Sản phẩm tạm thời hết hàng.`;
     }

@@ -249,6 +249,7 @@ export async function handleProductDetail(
       chat_id: chatId,
       photo: fullImageUrl,
       caption: detailText,
+      parse_mode: 'HTML',
       reply_markup: buildInlineKeyboard(buttons),
     });
   } else {
@@ -256,6 +257,7 @@ export async function handleProductDetail(
       chat_id: chatId,
       message_id: messageId,
       text: detailText,
+      parse_mode: 'HTML',
       reply_markup: buildInlineKeyboard(buttons),
     });
   }
