@@ -52,6 +52,7 @@ export async function processCheckoutDirect(params: {
 
   const result = rawResult as {
     status?: string;
+    order_id?: string;
     available?: number;
     total_amount?: number;
     expires_at?: string;
@@ -104,11 +105,23 @@ export async function processCheckoutDirect(params: {
   });
 
   // Send VietQR photo with instruction text caption
-  await sendPhoto({
+  const photoRes = await sendPhoto({
     chat_id: chatId,
     photo: qrUrl,
     caption: paymentText,
   });
+
+  if (photoRes.ok && photoRes.result?.message_id && result?.order_id) {
+    // Store QR payment message ID in delivery_attempts for auto-deletion upon completion
+    await supabase.from('delivery_attempts').upsert(
+      {
+        order_id: result.order_id,
+        telegram_chat_id: chatId,
+        telegram_message_ids: [photoRes.result.message_id],
+      },
+      { onConflict: 'order_id' }
+    );
+  }
 }
 
 /**

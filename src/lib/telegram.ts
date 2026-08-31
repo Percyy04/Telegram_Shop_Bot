@@ -96,6 +96,13 @@ export async function sendPhoto(params: SendPhotoParams) {
   return telegramRequest<{ message_id: number }>('sendPhoto', params);
 }
 
+export async function deleteMessage(params: {
+  chat_id: number | string;
+  message_id: number;
+}) {
+  return telegramRequest('deleteMessage', params);
+}
+
 /**
  * Set the persistent reply keyboard for a chat.
  */

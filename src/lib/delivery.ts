@@ -12,11 +12,10 @@
 
 import { getAdminSupabase } from './supabase/admin';
 import { decryptPayload } from './crypto';
-import { sendMessage } from './telegram';
+import { sendMessage, deleteMessage } from './telegram';
 import { getEnv } from './config';
 import { MSG } from './constants';
 import {
-  notifyAutoConfirm,
   notifyDeliveryFailed,
   notifyDeliveryUncertain,
 } from './admin-notify';
@@ -92,6 +91,17 @@ export async function attemptDelivery(
       warrantyText = product?.warranty_text ?? null;
     }
 
+    // Fetch previous payment QR photo message IDs for auto-deletion
+    const { data: attemptRecord } = await supabase
+      .from('delivery_attempts')
+      .select('telegram_message_ids')
+      .eq('id', attempt_id)
+      .single();
+
+    const previousMessageIds: number[] = Array.isArray(attemptRecord?.telegram_message_ids)
+      ? (attemptRecord.telegram_message_ids as unknown as number[])
+      : [];
+
     // 4. Decrypt all stock units and combine into 1 Telegram message
     const decryptedPayloads = stockUnits.map((unit, index) => {
       const decrypted = decryptPayload(
@@ -101,7 +111,6 @@ export async function attemptDelivery(
       return stockUnits.length > 1 ? `${index + 1}. ${decrypted}` : decrypted;
     });
 
-    const combinedPayload = decryptedPayloads.join('\n');
     const messageIds: number[] = [];
 
     // Chunk message if combined payload exceeds Telegram 4000 character limit
@@ -161,11 +170,19 @@ export async function attemptDelivery(
       return { success: false, status: 'UNCERTAIN', error: deliverError.message };
     }
 
-    // Notify admin of successful delivery
-    await notifyAutoConfirm(
-      order?.code ?? 'N/A',
-      Number(order?.total_amount ?? 0)
-    );
+    // Auto-delete payment instruction & VietQR photo message from chat to keep history clean
+    if (previousMessageIds.length > 0) {
+      for (const msgId of previousMessageIds) {
+        if (typeof msgId === 'number') {
+          deleteMessage({
+            chat_id: telegram_chat_id,
+            message_id: msgId,
+          }).catch((err) =>
+            console.warn(`[AutoDelete] Could not delete payment message ${msgId}:`, err)
+          );
+        }
+      }
+    }
 
     return { success: true, status: 'SENT' };
   } catch (error) {
