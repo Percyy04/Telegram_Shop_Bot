@@ -118,14 +118,52 @@ export async function PUT(request: Request) {
     isActive,
   } = body;
 
-  if (!id || !sku || !name || salePrice === undefined) {
+  if (!id) {
     return NextResponse.json(
-      { error: 'ID, SKU, tên sản phẩm và giá bán là bắt buộc.' },
+      { error: 'ID sản phẩm là bắt buộc.' },
       { status: 400 }
     );
   }
 
   const supabase = getAdminSupabase();
+
+  // Quick toggle (when only id and isActive are sent)
+  if (isActive !== undefined && !sku && !name && salePrice === undefined) {
+    const { data: toggleData, error: toggleErr } = await supabase
+      .from('products')
+      .update({
+        is_active: isActive,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (toggleErr) {
+      return NextResponse.json(
+        { error: `Lỗi cập nhật: ${toggleErr.message}` },
+        { status: 400 }
+      );
+    }
+
+    await supabase.from('audit_logs').insert({
+      actor_type: 'ADMIN',
+      actor_admin_id: admin.id,
+      action: 'TOGGLE_PRODUCT_ACTIVE',
+      entity_type: 'PRODUCT',
+      entity_id: id,
+      metadata: { is_active: isActive },
+    });
+
+    return NextResponse.json({ success: true, product: toggleData });
+  }
+
+  if (!sku || !name || salePrice === undefined) {
+    return NextResponse.json(
+      { error: 'SKU, tên sản phẩm và giá bán là bắt buộc.' },
+      { status: 400 }
+    );
+  }
 
   const { data, error } = await supabase
     .from('products')
@@ -161,8 +199,42 @@ export async function PUT(request: Request) {
     action: 'UPDATE_PRODUCT',
     entity_type: 'PRODUCT',
     entity_id: id,
-    metadata: { name, sku, salePrice },
+    metadata: { name, sku, salePrice, is_active: isActive },
   });
 
   return NextResponse.json({ success: true, product: data });
+}
+
+export async function DELETE(request: Request) {
+  const admin = await requireAdmin();
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+
+  if (!id) {
+    return NextResponse.json({ error: 'Thiếu ID sản phẩm.' }, { status: 400 });
+  }
+
+  const supabase = getAdminSupabase();
+
+  // Delete product
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Delete product error:', error);
+    return NextResponse.json({ error: `Không thể xóa sản phẩm: ${error.message}` }, { status: 400 });
+  }
+
+  await supabase.from('audit_logs').insert({
+    actor_type: 'ADMIN',
+    actor_admin_id: admin.id,
+    action: 'DELETE_PRODUCT',
+    entity_type: 'PRODUCT',
+    entity_id: id,
+    metadata: { deleted_at: new Date().toISOString() },
+  });
+
+  return NextResponse.json({ success: true });
 }

@@ -32,7 +32,7 @@ const envSchema = z.object({
   CRON_SECRET: z.string().min(1),
   ORDER_EXPIRE_MINUTES: z
     .string()
-    .default('30')
+    .default('10')
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().int().positive()),
 

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, Save, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface Category {
@@ -12,20 +12,26 @@ interface Category {
   emoji: string | null;
 }
 
-export default function NewProductPage() {
+export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const productId = resolvedParams.id;
   const router = useRouter();
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
+    id: '',
     sku: '',
     name: '',
     description: '',
     categoryId: '',
-    salePrice: 100000,
-    warrantyText: 'Bảo hành 30 ngày',
-    deliveryNote: 'Giao ngay qua Telegram',
+    salePrice: 0,
+    warrantyText: '',
+    deliveryNote: '',
     minQuantity: 1,
     maxQuantity: 1,
     lowStockThreshold: 3,
@@ -33,30 +39,56 @@ export default function NewProductPage() {
   });
 
   useEffect(() => {
-    async function loadCategories() {
+    async function loadData() {
       const supabase = createClient();
-      const { data } = await supabase
+
+      // Load Categories
+      const { data: catData } = await supabase
         .from('categories')
         .select('id, name, emoji')
         .order('sort_order');
-      if (data) {
-        setCategories(data);
-        if (data.length > 0) {
-          setFormData((prev) => ({ ...prev, categoryId: data[0].id }));
-        }
+      if (catData) setCategories(catData);
+
+      // Load Product
+      const { data: product, error: prodErr } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', productId)
+        .single();
+
+      if (prodErr || !product) {
+        setError('Không tìm thấy thông tin sản phẩm.');
+      } else {
+        setFormData({
+          id: product.id,
+          sku: product.sku || '',
+          name: product.name || '',
+          description: product.description || '',
+          categoryId: product.category_id || '',
+          salePrice: Number(product.sale_price) || 0,
+          warrantyText: product.warranty_text || '',
+          deliveryNote: product.delivery_note || '',
+          minQuantity: product.min_quantity || 1,
+          maxQuantity: product.max_quantity || 1,
+          lowStockThreshold: product.low_stock_threshold || 3,
+          isActive: product.is_active ?? true,
+        });
       }
+      setInitialLoading(false);
     }
-    loadCategories();
-  }, []);
+
+    loadData();
+  }, [productId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
       const res = await fetch('/api/admin/products', {
-        method: 'POST',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
@@ -64,16 +96,28 @@ export default function NewProductPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Tạo sản phẩm thất bại.');
+        setError(data.error || 'Cập nhật sản phẩm thất bại.');
       } else {
-        router.push('/admin/products');
-        router.refresh();
+        setSuccess('✅ Đã cập nhật thông tin sản phẩm thành công!');
+        setTimeout(() => {
+          router.push('/admin/products');
+          router.refresh();
+        }, 1200);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi.');
     } finally {
       setLoading(false);
     }
+  }
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center p-12 text-slate-500 gap-2">
+        <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
+        <span className="text-xs font-semibold">Đang tải thông tin sản phẩm...</span>
+      </div>
+    );
   }
 
   return (
@@ -87,8 +131,8 @@ export default function NewProductPage() {
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Thêm sản phẩm mới</h1>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">Điền đầy đủ thông tin bên dưới để khởi tạo sản phẩm</p>
+          <h1 className="text-xl font-bold text-slate-900">Chỉnh sửa sản phẩm</h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">Cập nhật thông tin chi tiết sản phẩm #{formData.sku}</p>
         </div>
       </div>
 
@@ -99,12 +143,19 @@ export default function NewProductPage() {
         </div>
       )}
 
+      {success && (
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold flex items-center gap-3 shadow-xs">
+          <CheckCircle className="w-5 h-5 shrink-0 text-emerald-600" />
+          <span>{success}</span>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-6 shadow-xs">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="sku-new-input" className="block text-xs font-bold text-slate-700 mb-1.5">Mã SKU *</label>
+            <label htmlFor="sku-input" className="block text-xs font-bold text-slate-700 mb-1.5">Mã SKU *</label>
             <input
-              id="sku-new-input"
+              id="sku-input"
               type="text"
               required
               value={formData.sku}
@@ -115,13 +166,14 @@ export default function NewProductPage() {
           </div>
 
           <div>
-            <label htmlFor="category-new-select" className="block text-xs font-bold text-slate-700 mb-1.5">Danh mục</label>
+            <label htmlFor="category-select" className="block text-xs font-bold text-slate-700 mb-1.5">Danh mục</label>
             <select
-              id="category-new-select"
+              id="category-select"
               value={formData.categoryId}
               onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-colors min-h-[44px]"
             >
+              <option value="">-- Chọn danh mục --</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.emoji || '📦'} {c.name}
@@ -132,9 +184,9 @@ export default function NewProductPage() {
         </div>
 
         <div>
-          <label htmlFor="name-new-input" className="block text-xs font-bold text-slate-700 mb-1.5">Tên sản phẩm *</label>
+          <label htmlFor="name-input" className="block text-xs font-bold text-slate-700 mb-1.5">Tên sản phẩm *</label>
           <input
-            id="name-new-input"
+            id="name-input"
             type="text"
             required
             value={formData.name}
@@ -145,9 +197,9 @@ export default function NewProductPage() {
         </div>
 
         <div>
-          <label htmlFor="price-new-input" className="block text-xs font-bold text-slate-700 mb-1.5">Giá bán (VND) *</label>
+          <label htmlFor="price-input" className="block text-xs font-bold text-slate-700 mb-1.5">Giá bán (VND) *</label>
           <input
-            id="price-new-input"
+            id="price-input"
             type="number"
             required
             min={0}
@@ -160,9 +212,9 @@ export default function NewProductPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="warranty-new-input" className="block text-xs font-bold text-slate-700 mb-1.5">Thông tin bảo hành</label>
+            <label htmlFor="warranty-input" className="block text-xs font-bold text-slate-700 mb-1.5">Thông tin bảo hành</label>
             <input
-              id="warranty-new-input"
+              id="warranty-input"
               type="text"
               value={formData.warrantyText}
               onChange={(e) => setFormData({ ...formData, warrantyText: e.target.value })}
@@ -172,9 +224,9 @@ export default function NewProductPage() {
           </div>
 
           <div>
-            <label htmlFor="delivery-note-new-input" className="block text-xs font-bold text-slate-700 mb-1.5">Ghi chú giao hàng</label>
+            <label htmlFor="delivery-note-input" className="block text-xs font-bold text-slate-700 mb-1.5">Ghi chú giao hàng</label>
             <input
-              id="delivery-note-new-input"
+              id="delivery-note-input"
               type="text"
               value={formData.deliveryNote}
               onChange={(e) => setFormData({ ...formData, deliveryNote: e.target.value })}
@@ -186,9 +238,9 @@ export default function NewProductPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="min-qty-new-input" className="block text-xs font-bold text-slate-700 mb-1.5">Số lượng mua tối thiểu</label>
+            <label htmlFor="min-qty-input" className="block text-xs font-bold text-slate-700 mb-1.5">Số lượng mua tối thiểu</label>
             <input
-              id="min-qty-new-input"
+              id="min-qty-input"
               type="number"
               min={1}
               value={formData.minQuantity}
@@ -198,9 +250,9 @@ export default function NewProductPage() {
           </div>
 
           <div>
-            <label htmlFor="max-qty-new-input" className="block text-xs font-bold text-slate-700 mb-1.5">Số lượng mua tối đa</label>
+            <label htmlFor="max-qty-input" className="block text-xs font-bold text-slate-700 mb-1.5">Số lượng mua tối đa</label>
             <input
-              id="max-qty-new-input"
+              id="max-qty-input"
               type="number"
               min={1}
               value={formData.maxQuantity}
@@ -210,9 +262,9 @@ export default function NewProductPage() {
           </div>
 
           <div>
-            <label htmlFor="low-stock-new-input" className="block text-xs font-bold text-slate-700 mb-1.5">Ngưỡng báo sắp hết hàng</label>
+            <label htmlFor="low-stock-input" className="block text-xs font-bold text-slate-700 mb-1.5">Ngưỡng báo sắp hết hàng</label>
             <input
-              id="low-stock-new-input"
+              id="low-stock-input"
               type="number"
               min={0}
               value={formData.lowStockThreshold}
@@ -223,9 +275,9 @@ export default function NewProductPage() {
         </div>
 
         <div>
-          <label htmlFor="description-new-input" className="block text-xs font-bold text-slate-700 mb-1.5">Mô tả chi tiết</label>
+          <label htmlFor="description-input" className="block text-xs font-bold text-slate-700 mb-1.5">Mô tả chi tiết</label>
           <textarea
-            id="description-new-input"
+            id="description-input"
             rows={4}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -254,11 +306,11 @@ export default function NewProductPage() {
         >
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" /> Đang tạo...
+              <Loader2 className="w-4 h-4 animate-spin" /> Đang cập nhật...
             </>
           ) : (
             <>
-              <Save className="w-4 h-4" /> Lưu sản phẩm
+              <Save className="w-4 h-4" /> Cập nhật sản phẩm
             </>
           )}
         </button>

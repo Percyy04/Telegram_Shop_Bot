@@ -54,7 +54,7 @@ export default function OrderActionsForm({
   return (
     <div className="flex flex-col items-end gap-2">
       {error && (
-        <span className="text-xs text-red-400 font-medium bg-red-500/10 px-3 py-1 rounded border border-red-500/20">
+        <span className="text-xs text-rose-700 font-bold bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200 shadow-xs">
           {error}
         </span>
       )}
@@ -70,12 +70,12 @@ export default function OrderActionsForm({
               )
             }
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors disabled:opacity-50 min-h-[44px] shadow-sm"
           >
             {loading ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <UserCheck className="w-3.5 h-3.5" />
+              <UserCheck className="w-4 h-4" />
             )}
             Xác nhận thanh toán thủ công
           </button>
@@ -91,14 +91,14 @@ export default function OrderActionsForm({
               )
             }
             disabled={loading}
-            className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors disabled:opacity-50 min-h-[44px] shadow-sm"
           >
             {loading ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-4 h-4" />
             )}
-            Thử lại giao hàng (Retry Delivery)
+            Thử lại giao hàng
           </button>
         )}
 
@@ -112,9 +112,9 @@ export default function OrderActionsForm({
               )
             }
             disabled={loading}
-            className="bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-400 border border-slate-700 hover:border-rose-800 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            className="bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 hover:border-rose-600 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors disabled:opacity-50 min-h-[44px] shadow-xs"
           >
-            <XCircle className="w-3.5 h-3.5" /> Hủy đơn & Trả kho
+            <XCircle className="w-4 h-4" /> Hủy đơn & Trả kho
           </button>
         )}
       </div>

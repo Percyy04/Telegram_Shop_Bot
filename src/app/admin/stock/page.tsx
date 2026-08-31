@@ -96,47 +96,48 @@ export default function AdminStockPage() {
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-          <Boxes className="w-5 h-5 text-purple-400" />
+        <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <Boxes className="w-5 h-5 text-purple-600" />
           Nhập kho sản phẩm (Bulk Import)
         </h1>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-slate-500 font-medium mt-1">
           Dữ liệu từng dòng sẽ được mã hóa AES-256-GCM bảo mật trực tiếp trên Server trước khi lưu DB.
         </p>
       </div>
 
       {message && (
         <div
-          className={`p-4 rounded-xl border text-sm flex items-center gap-3 ${
+          className={`p-4 rounded-xl border text-sm font-semibold flex items-center gap-3 shadow-xs ${
             message.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-              : 'bg-red-500/10 border-red-500/20 text-red-400'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-rose-50 border-rose-200 text-rose-800'
           }`}
         >
           {message.type === 'success' ? (
-            <CheckCircle className="w-5 h-5 shrink-0" />
+            <CheckCircle className="w-5 h-5 shrink-0 text-emerald-600" />
           ) : (
-            <AlertCircle className="w-5 h-5 shrink-0" />
+            <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
           )}
           <span>{message.text}</span>
         </div>
       )}
 
-      <form onSubmit={handleImport} className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6 shadow-xl">
+      <form onSubmit={handleImport} className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 space-y-6 shadow-xs">
         {/* Select Product */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-2">
+          <label htmlFor="stock-product-select" className="block text-xs font-bold text-slate-700 mb-2">
             Chọn sản phẩm nhập kho
           </label>
           {fetchingProducts ? (
-            <div className="text-xs text-slate-500 flex items-center gap-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang tải danh sách sản phẩm...
+            <div className="text-xs text-slate-500 flex items-center gap-2 py-2 font-medium">
+              <Loader2 className="w-4 h-4 animate-spin text-purple-600" /> Đang tải danh sách sản phẩm...
             </div>
           ) : (
             <select
+              id="stock-product-select"
               value={selectedProductId}
               onChange={(e) => setSelectedProductId(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:bg-white focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/10 min-h-[44px]"
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -150,48 +151,50 @@ export default function AdminStockPage() {
         {/* Textarea Bulk Input */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-xs font-semibold text-slate-300">
+            <label htmlFor="stock-textarea" className="block text-xs font-bold text-slate-700">
               Danh sách tài khoản / Key / Hàng (Mỗi dòng 1 phần quà/account)
             </label>
-            <span className="text-xs font-mono text-purple-400 font-semibold">
+            <span className="text-xs font-mono text-purple-700 font-bold bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
               {currentLinesCount} dòng được phát hiện
             </span>
           </div>
 
           <textarea
+            id="stock-textarea"
             rows={10}
             value={stockLines}
             onChange={(e) => setStockLines(e.target.value)}
             placeholder={`Chèn danh sách hàng tại đây, mỗi dòng là 1 tài khoản:\nuser1@gmail.com|pass123|keyABC\nuser2@gmail.com|pass456|keyXYZ`}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-4 font-mono text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-mono text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/10"
           />
         </div>
 
         {/* Import Note */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-2">
+          <label htmlFor="stock-import-note" className="block text-xs font-bold text-slate-700 mb-2">
             Ghi chú đợt nhập (Tùy chọn)
           </label>
           <input
+            id="stock-import-note"
             type="text"
             value={importNote}
             onChange={(e) => setImportNote(e.target.value)}
             placeholder="VD: Đợt hàng nhập ngày 30/08 từ đại lý A"
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/10 min-h-[44px]"
           />
         </div>
 
         {/* Telegram Broadcast Checkbox */}
-        <div className="flex items-center gap-2 pt-1">
-          <input
-            type="checkbox"
-            id="broadcastNotify"
-            checked={broadcastNotify}
-            onChange={(e) => setBroadcastNotify(e.target.checked)}
-            className="w-4 h-4 rounded bg-slate-950 border-slate-800 text-purple-600 focus:ring-purple-500/50"
-          />
-          <label htmlFor="broadcastNotify" className="text-sm font-medium text-purple-300 cursor-pointer">
-            Gửi tin nhắn thông báo thêm hàng (Restock) lên Telegram
+        <div className="pt-1">
+          <label htmlFor="broadcastNotify" className="min-h-[44px] flex items-center gap-3 cursor-pointer text-sm font-bold text-purple-900 hover:text-purple-700 transition-colors">
+            <input
+              type="checkbox"
+              id="broadcastNotify"
+              checked={broadcastNotify}
+              onChange={(e) => setBroadcastNotify(e.target.checked)}
+              className="w-5 h-5 rounded border-slate-300 text-purple-600 focus:ring-purple-500 shrink-0"
+            />
+            <span>Gửi tin nhắn thông báo thêm hàng (Restock) lên Telegram</span>
           </label>
         </div>
 
@@ -199,7 +202,7 @@ export default function AdminStockPage() {
         <button
           type="submit"
           disabled={loading || fetchingProducts || currentLinesCount === 0}
-          className="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold py-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 min-h-[44px] shadow-sm"
         >
           {loading ? (
             <>

@@ -13,12 +13,18 @@ export async function handleCatalogMenu(chatId: number, messageId?: number) {
 
   const { data: categories } = await supabase
     .from('categories')
-    .select('id, name, emoji')
+    .select('id, name, emoji, products(id, is_active)')
     .eq('is_active', true)
     .order('sort_order');
 
-  if (!categories || categories.length === 0) {
-    const text = '🛒 Hiện tại chưa có danh mục sản phẩm nào.';
+  // Filter categories to only those containing at least 1 active product
+  const activeCategories = (categories || []).filter((cat) => {
+    const prods = (cat.products || []) as { id: string; is_active: boolean }[];
+    return prods.some((p) => p.is_active);
+  });
+
+  if (!activeCategories || activeCategories.length === 0) {
+    const text = '🛒 Hiện tại chưa có sản phẩm nào đang mở bán.';
     if (messageId) {
       await editMessageText({ chat_id: chatId, message_id: messageId, text });
     } else {
@@ -28,7 +34,7 @@ export async function handleCatalogMenu(chatId: number, messageId?: number) {
   }
 
   // Build category inline buttons
-  const rows = categories.map((cat) => [
+  const rows = activeCategories.map((cat) => [
     {
       text: `${cat.emoji || '📦'} ${cat.name}`,
       callback_data: `${CB.CATEGORY}${cat.id}`,
@@ -169,10 +175,18 @@ export async function handleProductDetail(
     .from('products')
     .select('*, categories(id, name)')
     .eq('id', productId)
+    .eq('is_active', true)
     .single();
 
   if (!product) {
-    await answerCallbackQuery(callback.id, 'Sản phẩm không tồn tại.', true);
+    await editMessageText({
+      chat_id: chatId,
+      message_id: messageId,
+      text: '❌ Sản phẩm này hiện đang tạm ẩn hoặc ngừng kinh doanh.',
+      reply_markup: buildInlineKeyboard([
+        [{ text: '« Quay lại danh mục', callback_data: CB.MENU_HOME }],
+      ]),
+    });
     return;
   }
 

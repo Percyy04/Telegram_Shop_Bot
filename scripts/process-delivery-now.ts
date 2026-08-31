@@ -14,7 +14,7 @@ async function main() {
     console.log('--- Step 2: Confirming payment manually via RPC ---');
     const { data: confirmRes, error: confirmErr } = await supabase.rpc('confirm_payment_manual', {
       p_order_id: orderId,
-      p_admin_id: null,
+      p_admin_id: undefined as unknown as string,
       p_note: 'Manual confirmation for TG-CMREUN (TG-27SPT8)'
     });
     console.log('Confirm RPC result:', confirmRes, confirmErr);

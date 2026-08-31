@@ -19,9 +19,9 @@ export async function handleOrdersCommand(
   page: number = 1
 ) {
   const isCallback = 'data' in target;
-  const chatId = isCallback ? target.message?.chat.id : target.chat.id;
+  const chatId = isCallback ? target.message?.chat.id : (target as TelegramMessage).chat.id;
   const messageId = isCallback ? target.message?.message_id : undefined;
-  const userId = isCallback ? target.from.id : target.from?.id;
+  const userId = isCallback ? target.from.id : (target as TelegramMessage).from?.id;
 
   if (!chatId || !userId) return;
   if (isCallback) await answerCallbackQuery(target.id);
